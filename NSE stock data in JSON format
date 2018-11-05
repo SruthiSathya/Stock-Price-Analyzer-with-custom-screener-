@@ -1,0 +1,50 @@
+import json
+import requests
+from bs4 import BeautifulSoup
+
+def getURL(symbolHolder):
+  url = "https://www.nseindia.com/products/dynaContent/common/productsSymbolMapping.jsp?"
+  symbol="symbol="
+  other_params="&segmentLink=3&symbolCount=1&series=ALL&dateRange=1month&fromDate=&toDate=&dataType=PRICEVOLUMEDELIVERABLE"
+  symbolHolder=symbolHolder
+  fullURL =  (url+symbol+symbolHolder+other_params)
+  return fullURL
+
+def getHTML(OutputURL):
+  headers={"Referer":"https://www.nseindia.com","Host":"www.nseindia.com","DNT":"1"}
+  page = requests.get(OutputURL, headers = headers)
+  return page
+
+def getSoup(page):
+  cont = page.content
+  soup = BeautifulSoup(cont,'html.parser')
+  return soup
+
+def getRecords(soup):
+  records = []
+  header_array=[]
+  for th in soup.findAll("th"):
+    header_array.append(th.contents[0])
+  for m in soup.findAll('tr'): 
+    cells = m.findAll('td')     
+    record = {}
+    for n in range(len(cells)):   
+      record[header_array[n]] = cells[n].contents[0]
+    records.append(record)
+  return records
+
+def fileDump(records,symbolHolder):
+  symbolHolder = symbolHolder
+  with open(symbolHolder+'.txt', 'w') as outfile:  
+    json.dump(records, outfile)
+
+most_active_securities = ["YESBANK","RELIANCE","DHFL","AXISBANK","HDFC","SBIN", "MARUTI","BAJFINANCE","HDFCBANK","INFY"]
+
+for i in range(len(most_active_securities)):
+  symbolHolder = most_active_securities[i]
+  fullURL = getURL(symbolHolder)
+  page = getHTML(fullURL)
+  soup = getSoup(page)
+  records = getRecords(soup)
+  records.pop(0)
+  fileDump(records,symbolHolder)
