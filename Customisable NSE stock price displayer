@@ -1,0 +1,77 @@
+import datetime 
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+import json
+import requests
+from bs4 import BeautifulSoup
+
+DateList = []
+ClosePrice = []
+tempDateList = []
+tepmClosePrice = []
+
+def getURL(symbolHolder):
+  url = "https://www.nseindia.com/products/dynaContent/common/productsSymbolMapping.jsp?"
+  symbol="symbol="
+  other_params="&segmentLink=3&symbolCount=1&series=ALL&dateRange=1month&fromDate=&toDate=&dataType=PRICEVOLUMEDELIVERABLE"
+  symbolHolder=symbolHolder
+  fullURL =  (url+symbol+symbolHolder+other_params)
+  return fullURL
+
+def getHTML(OutputURL):
+  headers={"Referer":"https://www.nseindia.com","Host":"www.nseindia.com","DNT":"1"}
+  page = requests.get(OutputURL, headers = headers)
+  return page
+
+def getSoup(page):
+  cont = page.content
+  soup = BeautifulSoup(cont,'html.parser')
+  return soup
+
+def getRecords(soup):
+  records = []
+  header_array=[]
+  for th in soup.findAll("th"):
+    header_array.append(th.contents[0])
+  for m in soup.findAll('tr'): 
+    cells = m.findAll('td')     
+    record = {}
+    for n in range(len(cells)):   
+      record[header_array[n]] = cells[n].contents[0]
+    records.append(record)
+  return records
+
+def fileDump(records,symbolHolder):
+  symbolHolder = symbolHolder
+  with open(symbolHolder+'.txt', 'w') as outfile:  
+    json.dump(records, outfile)
+    
+def ListGenerator(records):
+    for i in records:
+        tempDateList.append(i["Date"])
+        tepmClosePrice.append(i["Close Price"])
+    for i in tempDateList:
+        DateList.append(datetime.datetime.strptime(i, "%d-%b-%Y").strftime('%d/%m/%Y'))
+    x = [datetime.datetime.strptime(d,'%d/%m/%Y').date() for d in DateList]   
+    for i in tepmClosePrice :
+        ClosePrice.append(float(i.replace(',',''))) 
+    
+    matplotlib.interactive(True)
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%d/%m/%Y'))
+    plt.gca().xaxis.set_major_locator(mdates.DayLocator())
+    plt.plot(x,ClosePrice)
+    plt.gcf().autofmt_xdate()
+
+most_active_securities = ["YESBANK","RELIANCE","DHFL","AXISBANK","HDFC","SBIN", "MARUTI","BAJFINANCE","HDFCBANK","INFY"]
+
+symbolHolder = input("Type the NSE symbol of the company for which you want to analyse the stocks\nFew of the NSE symbols are listed below \nYESBANK\nRELIANCE \nDHFL\nAXISBANK\nHDFC\nSBIN\nMARUTI\nBAJFINANCE\nHDFCBANK\nINFY ")
+try:
+    fullURL = getURL(symbolHolder)
+    page = getHTML(fullURL)
+    soup = getSoup(page)
+    records = getRecords(soup)
+    records.pop(0)
+    fileDump(records,symbolHolder)
+    ListGenerator(records)
+except IndexError:
+    print("\nPlease enter a valid NSE symbol")
