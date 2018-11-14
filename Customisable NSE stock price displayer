@@ -1,4 +1,5 @@
 import datetime 
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import json
@@ -57,10 +58,11 @@ def ListGenerator(records):
         ClosePrice.append(float(i.replace(',',''))) 
     
     matplotlib.interactive(True)
-    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%d/%m/%Y'))
-    plt.gca().xaxis.set_major_locator(mdates.DayLocator())
     plt.plot(x,ClosePrice)
-    plt.gcf().autofmt_xdate()
+    plt.setp(plt.gca().xaxis.get_majorticklabels(),rotation=45)  
+    plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=2))
+    plt.gca().xaxis.set_minor_locator(mdates.DayLocator())
+    plt.show()
 
 most_active_securities = ["YESBANK","RELIANCE","DHFL","AXISBANK","HDFC","SBIN", "MARUTI","BAJFINANCE","HDFCBANK","INFY"]
 
