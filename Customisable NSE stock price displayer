@@ -57,8 +57,12 @@ def ListGenerator(records):
     for i in tepmClosePrice :
         ClosePrice.append(float(i.replace(',',''))) 
     
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.set_xlabel('Date (YYYY-MM-DD)')
+    ax.set_ylabel('Closing price of stock (in INR)')
     matplotlib.interactive(True)
-    plt.plot(x,ClosePrice)
+    plt.plot(x,ClosePrice, color="red")
     plt.setp(plt.gca().xaxis.get_majorticklabels(),rotation=45)  
     plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=2))
     plt.gca().xaxis.set_minor_locator(mdates.DayLocator())
