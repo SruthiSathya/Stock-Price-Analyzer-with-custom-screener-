@@ -1,0 +1,84 @@
+import csv
+import requests
+from bs4 import BeautifulSoup
+import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
+import pandas as pd
+import datetime
+import matplotlib.dates as mdates
+from mpl_finance import candlestick_ohlc
+  
+
+def getURL(symbolHolder):
+  url = "https://www.nseindia.com/products/dynaContent/common/productsSymbolMapping.jsp?"
+  symbol="symbol="
+  other_params="&segmentLink=3&symbolCount=1&series=ALL&dateRange=1month&fromDate=&toDate=&dataType=PRICEVOLUMEDELIVERABLE"
+  symbolHolder=symbolHolder
+  fullURL =  (url+symbol+symbolHolder+other_params)
+  return fullURL
+
+def getHTML(OutputURL):
+  headers={"Referer":"https://www.nseindia.com","Host":"www.nseindia.com","DNT":"1"}
+  page = requests.get(OutputURL, headers = headers)
+  return page
+
+def getSoup(page):
+  cont = page.content
+  soup = BeautifulSoup(cont,'html.parser')
+  return soup
+
+def getRecords(soup):
+  records = []
+  header_array=[]
+  for th in soup.findAll("th"):
+    header_array.append(th.contents[0])
+  for m in soup.findAll('tr'): 
+    cells = m.findAll('td')     #file:///E:/Financial Report 2013 - 14.xlsb
+    record = {}
+  
+    for n in range(len(cells)):   
+      record[header_array[n]] = cells[n].contents[0]
+    records.append(record)
+    print (records)
+    
+    #print records
+    with open('E:/names.csv', 'w') as csvfile:
+      writer = csv.DictWriter(csvfile, fieldnames=header_array)
+      writer.writeheader()
+      print (records)
+      tempDateList = []
+      DateList = []
+      for i in records:
+        tempDateList.append(i["Date"])
+      for i in tempDateList:
+        DateList.append(datetime.datetime.strptime(i, "%d-%b-%Y").strftime("%Y-%m-%d"))
+      for i in records:
+        writer.writerow(i)
+        
+    #start = dt.datetime(2015, 7, 1)
+        
+      start = DateList[1]
+      data = pd.io.data.DataReader('E:/names.csv', start)
+      data = data.reset_index()
+      data['Date2'] = data['Date'].apply(lambda d: mdates.date2num(d.to_pydatetime()))
+      tuples = [tuple(x) for x in data[['Date2','Open Price','High Price','Low Price','Close Price']].values]
+    
+      fig, ax = plt.subplots()
+      ax.xaxis_date()
+      ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d"))
+      plt.xticks(rotation=45)
+      plt.xlabel("Date")
+      plt.ylabel("Price")
+      plt.title("AAPL")
+      candlestick_ohlc(ax, tuples, width=.6, colorup='g', alpha =.4);
+
+most_active_securities = ["YESBANK","RELIANCE","DHFL","AXISBANK","HDFC","SBIN", "MARUTI","BAJFINANCE","HDFCBANK","INFY"]
+
+
+symbolHolder = input("Type the name of the company for which you want to analyse the stocks\nYESBANK\nRELIANCE \nDHFL\nAXISBANK\nHDFC\nSBIN\nMARUTI\nBAJFINANCE\nHDFCBANK\nINFY ")
+fullURL = getURL(symbolHolder)
+page = getHTML(fullURL)
+soup = getSoup(page)
+records = getRecords(soup)
+
