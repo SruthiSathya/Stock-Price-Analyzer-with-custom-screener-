@@ -53,8 +53,7 @@ def getRecords(soup):
       for s in records:
         dummy = datetime.datetime.strptime(s['Date'], "%d-%b-%Y").toordinal()
         Date2.append(dummy)
-      
-    
+        
       fig, ax = plt.subplots()
       ax.xaxis_date()
       ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d"))
