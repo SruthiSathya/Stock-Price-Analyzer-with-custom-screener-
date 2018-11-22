@@ -6,7 +6,6 @@ import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
 
-
 def getURL(symbolHolder):
   url = "https://www.nseindia.com/products/dynaContent/common/productsSymbolMapping.jsp?"
   symbol="symbol="
@@ -37,36 +36,16 @@ def getRecords(soup):
     for n in range(len(cells)):   
       record[header_array[n]] = cells[n].contents[0]
     records.append(record)
-    #print records
+    
     with open('names.csv', 'w') as csvfile:
       writer = csv.DictWriter(csvfile, fieldnames=header_array)
       writer.writeheader()
       #print (records)
       for i in records:
         writer.writerow(i)
-#Date, Open_Price, High_Price, Low_Price, Close_Price  = np.loadtxt(names.csv,         delimiter=unpack=True ) #converters={0: bytespdate2num('%Y-%m-%d')})
-
-    #records.append(record)
-  #return records
-
-most_active_securities = ["YESBANK","RELIANCE","DHFL","AXISBANK","HDFC","SBIN", "MARUTI","BAJFINANCE","HDFCBANK","INFY"]
-
 
 symbolHolder = input("Type the name of the company for which you want to analyse the stocks\nYESBANK\nRELIANCE \nDHFL\nAXISBANK\nHDFC\nSBIN\nMARUTI\nBAJFINANCE\nHDFCBANK\nINFY ")
 fullURL = getURL(symbolHolder)
 page = getHTML(fullURL)
 soup = getSoup(page)
 records = getRecords(soup)
-
-matplotlib.interactive(True)
-plt.ion()
-stockData = pd.read_csv("names.csv")
-stockData.head()
-stockData["Date"]= pd.to_datetime(stockData["Date"])
-print (stockData["Date"])
-stockData.head()
-fig = plt.figure(figsize=(10,6))
-ax1 = fig.add_axes([0,0,1,1])
-
-ax1.plot(stockData["Date"],stockData["Close Price"],color = "green", marker = "d")
-ax1.set_title(symbolHolder+ "Stocks - for the past 21 days")
