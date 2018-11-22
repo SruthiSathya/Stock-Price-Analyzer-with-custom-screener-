@@ -1,14 +1,10 @@
 import csv
 import requests
 from bs4 import BeautifulSoup
-import numpy as np
-import matplotlib
 import matplotlib.pyplot as plt
-import pandas as pd
-import datetime
 import matplotlib.dates as mdates
-from mpl_finance import candlestick_ohlc
-  
+from mpl_finance import *
+import datetime
 
 def getURL(symbolHolder):
   url = "https://www.nseindia.com/products/dynaContent/common/productsSymbolMapping.jsp?"
@@ -34,19 +30,16 @@ def getRecords(soup):
   for th in soup.findAll("th"):
     header_array.append(th.contents[0])
   for m in soup.findAll('tr'): 
-    cells = m.findAll('td')     #file:///E:/Financial Report 2013 - 14.xlsb
+    cells = m.findAll('td')     
     record = {}
   
     for n in range(len(cells)):   
       record[header_array[n]] = cells[n].contents[0]
     records.append(record)
-    print (records)
-    
-    #print records
-    with open('E:/names.csv', 'w') as csvfile:
+  records.pop(0)  
+  with open('Stock Report.csv', 'w') as csvfile:
       writer = csv.DictWriter(csvfile, fieldnames=header_array)
       writer.writeheader()
-      print (records)
       tempDateList = []
       DateList = []
       for i in records:
@@ -55,30 +48,35 @@ def getRecords(soup):
         DateList.append(datetime.datetime.strptime(i, "%d-%b-%Y").strftime("%Y-%m-%d"))
       for i in records:
         writer.writerow(i)
-        
-    #start = dt.datetime(2015, 7, 1)
-        
-      start = DateList[1]
-      data = pd.io.data.DataReader('E:/names.csv', start)
-      data = data.reset_index()
-      data['Date2'] = data['Date'].apply(lambda d: mdates.date2num(d.to_pydatetime()))
-      tuples = [tuple(x) for x in data[['Date2','Open Price','High Price','Low Price','Close Price']].values]
+  
+      Date2 = []
+      for s in records:
+        dummy = datetime.datetime.strptime(s['Date'], "%d-%b-%Y").toordinal()
+        Date2.append(dummy)
+      
     
       fig, ax = plt.subplots()
       ax.xaxis_date()
       ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d"))
+      plt.xticks(Date2,DateList)
       plt.xticks(rotation=45)
-      plt.xlabel("Date")
-      plt.ylabel("Price")
-      plt.title("AAPL")
+      plt.xlabel("Date in YYYY-MM-DD")
+      plt.ylabel("Price in INR")
+      plt.title(records[0]['Symbol'])
+
+      tuples = []
+      for i in records:
+        dummy = datetime.datetime.strptime(i['Date'], "%d-%b-%Y").toordinal()
+        t = (dummy,float(i['Open Price'].replace(',','')),float(i['High Price'].replace(',','')),float(i['Low Price'].replace(',','')),float(i['Close Price'].replace(',','')))
+        tuples.append(t)
+      
+      plt.tick_params(axis='both', which='major', labelsize=5)
       candlestick_ohlc(ax, tuples, width=.6, colorup='g', alpha =.4);
+      plt.show()
+      fig.savefig("z.png")
 
-most_active_securities = ["YESBANK","RELIANCE","DHFL","AXISBANK","HDFC","SBIN", "MARUTI","BAJFINANCE","HDFCBANK","INFY"]
-
-
-symbolHolder = input("Type the name of the company for which you want to analyse the stocks\nYESBANK\nRELIANCE \nDHFL\nAXISBANK\nHDFC\nSBIN\nMARUTI\nBAJFINANCE\nHDFCBANK\nINFY ")
+symbolHolder = input("Type the NSE symbol of the company for which you want to analyse the stocks.\n some of the symbols are given below:\nYESBANK\nRELIANCE \nDHFL\nAXISBANK\nHDFC\nMARUTI\nBAJFINANCE\nHDFCBANK\nINFY ")
 fullURL = getURL(symbolHolder)
 page = getHTML(fullURL)
 soup = getSoup(page)
 records = getRecords(soup)
-
