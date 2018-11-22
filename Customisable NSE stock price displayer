@@ -68,8 +68,6 @@ def ListGenerator(records):
     plt.gca().xaxis.set_minor_locator(mdates.DayLocator())
     plt.show()
 
-most_active_securities = ["YESBANK","RELIANCE","DHFL","AXISBANK","HDFC","SBIN", "MARUTI","BAJFINANCE","HDFCBANK","INFY"]
-
 symbolHolder = input("Type the NSE symbol of the company for which you want to analyse the stocks\nFew of the NSE symbols are listed below \nYESBANK\nRELIANCE \nDHFL\nAXISBANK\nHDFC\nSBIN\nMARUTI\nBAJFINANCE\nHDFCBANK\nINFY ")
 try:
     fullURL = getURL(symbolHolder)
