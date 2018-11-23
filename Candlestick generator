@@ -14,9 +14,9 @@ def getURL(symbolHolder):
   fullURL =  (url+symbol+symbolHolder+other_params)
   return fullURL
 
-def getHTML(OutputURL):
+def getHTML(fullURL):
   headers={"Referer":"https://www.nseindia.com","Host":"www.nseindia.com","DNT":"1"}
-  page = requests.get(OutputURL, headers = headers)
+  page = requests.get(fullURL, headers = headers)
   return page
 
 def getSoup(page):
