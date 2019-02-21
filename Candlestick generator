@@ -14,14 +14,15 @@ def getURL(symbolHolder):
   fullURL =  (url+symbol+symbolHolder+other_params)
   return fullURL
 
-def getHTML(fullURL):
+def getHTML(OutputURL):
   headers={"Referer":"https://www.nseindia.com","Host":"www.nseindia.com","DNT":"1"}
-  page = requests.get(fullURL, headers = headers)
+  page = requests.get(OutputURL, headers = headers)
   return page
 
 def getSoup(page):
   cont = page.content
   soup = BeautifulSoup(cont,'html.parser')
+  print (soup)
   return soup
 
 def getRecords(soup):
@@ -37,7 +38,7 @@ def getRecords(soup):
       record[header_array[n]] = cells[n].contents[0]
     records.append(record)
   records.pop(0)  
-  with open('Stock Report.csv', 'w') as csvfile:
+  with open('Stock reports.csv', 'w') as csvfile:
       writer = csv.DictWriter(csvfile, fieldnames=header_array)
       writer.writeheader()
       tempDateList = []
@@ -53,7 +54,7 @@ def getRecords(soup):
       for s in records:
         dummy = datetime.datetime.strptime(s['Date'], "%d-%b-%Y").toordinal()
         Date2.append(dummy)
-        
+    
       fig, ax = plt.subplots()
       ax.xaxis_date()
       ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d"))
@@ -70,12 +71,9 @@ def getRecords(soup):
         tuples.append(t)
       
       plt.tick_params(axis='both', which='major', labelsize=5)
-      candlestick_ohlc(ax, tuples, width=.6, colorup='g', alpha =.4);
+      candlestick_ohlc(ax, tuples, width=.6, colorup='g', alpha =0.8);
       plt.show()
-      fig.savefig("z.png")
-
+      fig.savefig("Candlestick chart.png")
+      
 symbolHolder = input("Type the NSE symbol of the company for which you want to analyse the stocks.\n some of the symbols are given below:\nYESBANK\nRELIANCE \nDHFL\nAXISBANK\nHDFC\nMARUTI\nBAJFINANCE\nHDFCBANK\nINFY ")
-fullURL = getURL(symbolHolder)
-page = getHTML(fullURL)
-soup = getSoup(page)
-records = getRecords(soup)
+CandlestickGenerator = getRecords(getSoup(getHTML(getURL(symbolHolder)))) 
